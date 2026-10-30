@@ -44,6 +44,7 @@ fn execute() -> anyhow::Result<()> {
         "prepare" => setup::prepare(root, std::path::Path::new(&args[3])),
         "publish" => publish::run(root, &args[3]),
         "recover" if args[3] == "run" => recovery::run(root),
+        "recover" if args[3] == "supersede" => recovery::supersede_current(root),
         _ => anyhow::bail!("unsupported pilot operation"),
     }
 }

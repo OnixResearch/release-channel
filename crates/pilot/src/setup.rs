@@ -110,15 +110,26 @@ pub fn prepare(root: &std::path::Path, config: &std::path::Path) -> anyhow::Resu
     let executable = std::env::current_exe()?;
     let mut hooks = serde_json::Map::new();
     for phase in [
-        "first", "second", "rotated", "control", "expired", "revoked", "split",
+        "first", "second", "rotated", "control", "expired", "revoked", "split", "recovery",
     ] {
         let hook = root.join(format!("publish-{phase}"));
         let quote =
             |path: &std::path::Path| format!("'{}'", path.to_string_lossy().replace('\'', "'\\''"));
+        // Recovery first resolves an actual orphan and then publishes its authenticated successor.
+        let operation = if phase == "recovery" {
+            "recover".to_owned()
+        } else {
+            "publish".to_owned()
+        };
+        let argument = if phase == "recovery" {
+            "supersede"
+        } else {
+            phase
+        };
         std::fs::write(
             &hook,
             format!(
-                "#!/bin/sh\nexec {} publish {} {phase}\n",
+                "#!/bin/sh\nexec {} {operation} {} {argument}\n",
                 quote(&executable),
                 quote(root)
             ),

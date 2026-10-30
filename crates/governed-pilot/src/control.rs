@@ -70,7 +70,11 @@ impl Control {
         // SAFETY: openat receives a live directory descriptor and a static NUL-terminated
         // path; a successful result is a fresh descriptor owned by the File below.
         let descriptor = unsafe { libc::openat(self.root.as_raw_fd(), c".".as_ptr(), flags) };
-        anyhow::ensure!(descriptor >= 0, "control directory reopen: {}", io::Error::last_os_error());
+        anyhow::ensure!(
+            descriptor >= 0,
+            "control directory reopen: {}",
+            io::Error::last_os_error()
+        );
         // SAFETY: descriptor is fresh, valid and not owned elsewhere.
         unsafe { std::fs::File::from_raw_fd(descriptor) }.sync_all()?;
         Ok(())

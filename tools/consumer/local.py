@@ -21,7 +21,10 @@ def load_transport():
     return module
 
 
-def exercise(args, root, services):
+CASES = ("expired", "revoked", "split", "supersession")
+
+
+def exercise(args, root, services, case):
     transport, port, mirror, mirror_root, oci_root, log_setup = services
     config = {
         "oci": transport.endpoint(port, oci_root, 1, True),
@@ -35,27 +38,34 @@ def exercise(args, root, services):
     path.chmod(0o600)
     fixtures = root / "fixtures"
     subprocess.run([str(args.publisher), "prepare", str(fixtures), str(path)], check=True, timeout=30)
-    result = subprocess.run(["python3", str(args.smoke), str(args.consumer), str(fixtures)],
-                            capture_output=True, text=True, timeout=1200, check=True)
+    result = subprocess.run(["python3", str(args.smoke), str(args.consumer), str(fixtures), case],
+                            capture_output=True, text=True, timeout=1200)
     if len(result.stdout) + len(result.stderr) > 1_048_576:
         raise RuntimeError("pilot output exceeds receipt bound")
+    if result.returncode != 0:
+        raise RuntimeError(f"{case} consumer matrix failed: {result.stderr.strip()[-4000:]}")
+    return {"case": case, "stdout": result.stdout}
+
+
+def receipt_for(args, cases):
     receipt = {
         "profile": "release-channel-experimental-separate-process-v1",
         "claim": "Actual consumer admission/rotation/recovery and consumer-only rollback rejection; common OS/admin",
         "not_claimed": ["administrative independence", "physical-host independence", "deployment success", "production readiness"],
-        "registry_image": transport.IMAGE,
+        "registry_image": load_transport().IMAGE,
         "provider_rollback_domain": "Separate private provider capability root outside consumer-store rollback root",
-        "matrix_stdout": result.stdout,
-        "phases": ["first", "second", "rotated", "expired", "revoked", "split"],
+        "cases": cases,
+        "phases": ["first", "second", "rotated", "control", "expired", "revoked", "split", "recovery"],
         "facts": "Publisher hooks perform actual dual-path upload/readback, real Sigsum append/proof verification and authenticated index reservation/finalization; negative expired/revoked metadata never advances index",
     }
     with args.receipt.open("x") as output:
         json.dump(receipt, output, indent=2)
-    print(result.stdout, end="")
+    for result in cases:
+        print(result["stdout"], end="")
     print("PASS genuine publisher + OnixOS consumer; shared-host experimental mechanism only")
 
 
-def run(args, root):
+def run(args, root, case):
     transport = load_transport()
     for name in ("oci", "mirror", "sigsum"):
         (root / name).mkdir(mode=0o700)
@@ -72,7 +82,7 @@ def run(args, root):
         if not select.select([log.stdout], [], [], 10)[0]:
             raise RuntimeError("actual Sigsum log startup deadline")
         setup = json.loads(log.stdout.readline(262144))
-        exercise(args, root, (transport, port, mirror, mroot, oroot, setup))
+        return exercise(args, root, (transport, port, mirror, mroot, oroot, setup), case)
     finally:
         mirror.shutdown()
         mirror.server_close()
@@ -98,8 +108,12 @@ def main():
             parser.error(f"{name}: absolute existing capability required")
     if args.receipt.exists():
         parser.error("new receipt path required")
-    with tempfile.TemporaryDirectory(prefix="release-channel-onixos-") as temporary:
-        run(args, pathlib.Path(temporary))
+    cases = []
+    # Each case uses fresh services, provider roots, namespaces and signing authorities.
+    for case in CASES:
+        with tempfile.TemporaryDirectory(prefix=f"release-channel-onixos-{case}-") as temporary:
+            cases.append(run(args, pathlib.Path(temporary), case))
+    receipt_for(args, cases)
 
 
 if __name__ == "__main__":

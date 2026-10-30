@@ -234,3 +234,13 @@ pub fn run(root: &std::path::Path) -> anyhow::Result<()> {
     let second = lost_commit(root)?;
     supersede(root, second)
 }
+
+/// Consumer matrix entry: the second generation is already current through ordinary hooks.
+pub fn supersede_current(root: &std::path::Path) -> anyhow::Result<()> {
+    let value: serde_json::Value = crate::read(&root.join("second.json"))?;
+    let second: model::Metadata = serde_json::from_value(value["metadata"].clone())?;
+    let current = snapshot(root)?;
+    release_channel_index::client::require_current(&current, &publish::claim(&second)?)
+        .map_err(|error| anyhow::anyhow!("second generation is not current: {error}"))?;
+    supersede(root, second)
+}
