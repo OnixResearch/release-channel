@@ -1,0 +1,41 @@
+{
+  ownership = {
+    selected_owner | String = "release-channel",
+    decision_date | String = "2026-10-29",
+    authority | String = "Actual user selection of dedicated release-channel repository after comparison; not third-party endorsement",
+    canonical_source | String = "https://github.com/OnixResearch/release-channel",
+    source_visibility | String = "private",
+    source_revision | Null = null,
+    publication_authorized | Bool = false,
+  },
+  admission = {
+    default_adoption | Bool = false,
+    production | Bool = false,
+    independent_witness_profile | Bool = false,
+    local_profile_promotes_to_independent | Bool = false,
+  },
+  required_operator_inputs | Array String = [
+    "Validated immutable source revision and authorized publication to the created private repository",
+    "Mantle immutable release and current Cairn readiness/evidence identities",
+    "Channel threshold signing/delegation/rotation/revocation authority",
+    "OCI write credentials and independently observed digest read path",
+    "Separate HTTPS mirror write credentials and independent read path",
+    "Explicit Sigsum log and witness keys, threshold policy, endpoints and administration assumptions",
+    "OnixOS target operator authority and durable anti-rollback store",
+  ],
+  required_pilots | Array String = [
+    "Mantle producer exact source/release/readiness/evidence binding",
+    "Publisher threshold, delegation, revocation, key rotation, expiry and interruption",
+    "OCI and independent HTTPS mirror immutable readback agreement and split failure",
+    "Sigsum real append, signed inclusion, quorum, checkpoint consistency and unavailable/fork rejection",
+    "OnixOS positive upgrade, rollback/freeze rejection, interrupted recovery and missing-state rejection",
+  ],
+  evidence | Array { scope | String, identity | String, observation | String } = [],
+  non_claims | Array String = [
+    "No TUF protocol conformance claim",
+    "No artifact correctness, readiness issuance or deployment success",
+    "No admin independence from local process verification or mirror URL count",
+    "No Molten world-head authority, staging or final CAS ownership",
+    "No consensus accelerator or production flag changes",
+  ],
+}

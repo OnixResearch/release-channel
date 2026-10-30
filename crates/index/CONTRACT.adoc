@@ -1,0 +1,152 @@
+= Authenticated retained release index v1
+
+This explicitly governed shared index is owned by Release Channel. It is not a
+Sigsum API, inclusion proof, log fork-consistency promise, or Molten-owned wire/log.
+No Artifact Auth code is reused. Ed25519 operations come from the pinned
+`ed25519-dalek =2.2.0` library (BSD-3-Clause); SHA-256 uses `sha2 =0.10.9`
+(MIT OR Apache-2.0). Existing immutable Artifact Auth pins are unchanged.
+
+The canonical owner-approved contract identifier is `release-channel-index-v1`.
+Its signed domains remain the exact bytes `release-channel-index/request/v1` plus NUL
+and `release-channel-index/reply/v1` plus NUL. Consumers bind this contract to the
+installed immutable source revision and explicitly enrolled provider key, not a
+caller-supplied label. Original index source is MIT; this does not relicense other
+packages or combined-work dependencies (see root THIRD-PARTY.adoc).
+
+== Trust and rollback domain
+
+The operator explicitly configures an administrator verification key, provider
+signing secret, exact namespace writer key, and consumer provider verification
+pin. Enrollment requires the administrator's real Ed25519 signature. Queries and
+mutations require the enrolled writer signature. No discovery, TOFU, implicit
+enrollment, rotation, expiry bypass, or global trust root exists. A namespace is
+the exact case-sensitive tuple `(channel, platform, track)`, each 1..128 ASCII
+alphanumeric or `-./:` bytes; aliases and normalization are not performed.
+
+The provider retains durable state outside the ENTIRE consumer-store rollback
+domain. Restoring the consumer's head, history, checkpoints, and cached replies
+cannot restore the provider state. The security assumption is that an attacker
+rolling back the consumer cannot also roll back or compromise the provider's
+storage/key, alter the explicit provider pin, or force reuse of query challenges.
+A same-OS experimental process demonstrates the protocol under this selected
+failure-domain assumption, not resistance to its common administrator. Shared
+physical disk, OS, administrator, snapshots or backups can violate production
+independence. Provider storage rollback itself is not detected cryptographically.
+
+== Protocol and transaction order
+
+Use `model::{Namespace, Claim, Operation, Request, SignedRequest, SignedReply}`.
+A claim binds generation, exact opaque 32-byte metadata identity, and optional
+predecessor digest. Generations are positive and strictly advance the retained
+high-water. The first claim has no predecessor; all later claims bind the exact
+externally committed predecessor. Identity algorithm selection remains the
+channel owner's responsibility; index does not reinterpret the digest as SHA-256.
+
+. Explicitly enroll an exact namespace and writer via `Operation::Enroll`.
+. Authenticate a fresh unpredictable 32-byte challenge query; verify the reply
+  using the explicit provider pin and the exact original request.
+. Before consumer finalCAS, reserve the next claim with `expected_revision`.
+  The provider durably advances highest and records a reservation before signing
+  success. Reservation identity binds the exact signed request and namespace.
+. Perform the consumer-owned finalCAS against the expected predecessor.
+. Finalize using `Commit { expected_revision, reservation, expected_predecessor }`.
+  The revision is the reserve reply revision. Commit advances the committed claim
+  only for that reservation, predecessor, and exact namespace.
+. On uncertain finalCAS/transport failure, do not assume rollback/no effect.
+  Query externally and retain the reservation. Explicit `Orphan` marks a known
+  abandoned reservation; it never makes a staged claim current. Orphans block
+  both old-head admission and advancement. No automatic orphan clearing exists.
+
+`client::require_current` admits only an exact candidate matching BOTH highest
+and committed with no pending reservation. Thus an orphan or staged newer claim
+blocks an older otherwise-committed head; a staged claim is never falsely current.
+Idempotent retry is intentionally not provided: a timeout requires a fresh query,
+not an assumption that the original mutation failed. Recovery after consumer CAS
+but before index commit must reconcile actual consumer-owned state, then commit
+the original reservation. An orphan requires explicit consumer-owned reconciliation,
+then authenticated `ResolveOrphan { expected_revision, reservation }` for that exact
+orphan. Resolution clears only pending and NEVER lowers highest or alters committed.
+The resulting high-water gap still denies the old committed head. A subsequent
+reservation must strictly exceed retained highest and bind the old committed
+predecessor. Only committing that superseding claim restores current admission.
+Deleting/resetting provider state is not safe recovery.
+
+Every signed success reply binds namespace, challenge, the SHA-256 digest of the
+exact request INCLUDING operation, durable per-namespace revision, highest,
+committed, and pending/orphan state. A denial produces process failure, not a
+signed success-shaped fallback. `verify_reply` verifies Ed25519, exact request
+binding, minimum revision and snapshot invariants. Callers MUST use a fresh
+cryptographically unpredictable challenge for every real request; the pilot's
+fixed nonces are deterministic experiment data, not production randomness.
+All signed JSON is reserialized from typed, unknown-field-denying structs using
+serde_json compact field order and domain prefixes in `crypto.rs`; sign the typed
+representation, not raw input JSON. Signatures use strict Ed25519 verification.
+
+== Durability, bounds and uncertainty
+
+Provider state uses an exclusive OS file lock and expected-revision CAS. Mutation
+writes a durable uncertainty marker, fsyncs its directory, writes/fsyncs temporary
+state, renames, fsyncs the directory, and only then removes/fsyncs the marker.
+Partial writes or a retained marker fail closed until operator recovery. Missing
+state never silently initializes. Initial creation requires an absent explicit
+root. State and key configuration paths are caller-owned capabilities; provider
+storage and configuration must not be writable by the consumer adversary.
+
+Each frame is at most 65536 bytes; at most 128 namespaces and 1 MiB state are
+accepted. Client helper bounds request/response size and deadline (1ns..60s).
+Unix process transport owns a new process group and kills remaining group members
+on completion, failure or timeout. The capability process MUST NOT daemonize or
+escape that owned process group. SSH server process lifetime and remote command
+policy remain operator-owned; SSH must not use a shared multiplexed master that
+is expected to be killed with this owned group. Caller supplies SSH binary,
+known-hosts pin, remote account and exact command; this crate discovers none.
+
+== Runnable process and experimental pilot
+
+After the integration owner freezes the cohort, from the workspace:
+
+[source,sh]
+----
+cargo build -p release-channel-index --bins
+# NEW_ROOT must be absent; retain its receipts/state for inspection.
+target/debug/experiment /absolute/new/index-experiment target/debug/provider target/debug/pilot
+----
+
+`experiment` configures TWO distinct process-host roots, administrator/server/
+writer key sets, namespaces and consumer files, then invokes actual provider
+processes for enrollment, reservation, consumer-file CAS, commit, signed query,
+whole consumer-file rollback rejection, orphan blocking, explicit resolution and
+strictly higher supersession/recovery without erasing highwater. Its deterministic
+keys are publicly known TEST KEYS ONLY. It labels both process hosts as sharing
+OS/administrator and proves neither administrative nor physical independence.
+The consumer file is the pilot's entire consumer-owned state, not a Molten head.
+Molten's actual strong-profile integration must separately pass the same external
+query through its own finalCAS and whole-store-rollback path before claiming that
+profile supported. The pilot does not certify that consumer integration.
+
+For independently configured SSH capabilities, provision provider binaries and
+explicit secret configurations on the two operator-selected hosts. Initialize
+each absent provider root with `provider init ROOT CONFIG.json`. Server config:
+`{"admin":[32 key bytes],"server_secret":[32 secret bytes]}`. Protect these files
+and all pilot configs containing secrets with directories mode 0700 and files mode
+0600 (`umask 077` before provisioning). The local experiment creates private roots
+and sets secret config files to 0600. Deterministic local TEST KEYS are still public.
+A pilot client config has `program` (e.g. explicit ssh path), `args` (including
+host-key policy, exact host, and `provider serve ROOT CONFIG.json` remote command),
+`server_pin`, `admin_secret`, `writer_secret`, exact `namespace` tuple, and an absent
+local `consumer_store` file. Keys are 32-element byte arrays. Then run:
+
+[source,sh]
+----
+python3 tools/index/pilot.py --pilot target/debug/pilot --first /cap/host-a.json --second /cap/host-b.json
+----
+
+The script executes both configured capabilities and preserves honest nonclaims;
+configuration separation alone is NOT proof of independent operators or hosts.
+No remote host/operator execution or production readiness is claimed by source
+or local fixture delivery. Strong profiles remain unsupported until their explicit
+authenticated external query passes; production authorization is separate.
+
+Deterministic positive/negative protocol tests are provided in `tests/protocol.rs`;
+they are not execution evidence. Build/tests/pilot execution are owned by the
+integration owner after source freeze, not performed by this source slice.

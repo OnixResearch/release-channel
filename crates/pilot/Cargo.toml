@@ -1,0 +1,19 @@
+[package]
+name = "release-channel-pilot"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+ed25519-dalek.workspace = true
+artifact-auth-core.workspace = true
+artifact-auth-ed25519.workspace = true
+release-channel.workspace = true
+release-channel-index.workspace = true
+release-channel-witness.workspace = true
+release-channel-transports.workspace = true

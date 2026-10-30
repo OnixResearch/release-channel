@@ -1,0 +1,52 @@
+= Release Channel
+
+Independent governed-distribution and reusable witness mechanisms. The workspace operator selected dedicated ownership on 2026-10-29 after comparison with Mantle extension and deferral. This is an ownership decision, not completed pilot or production authorization.
+
+== Packages
+
+* `release-channel`: bounded metadata, pure publication planning, authenticated authority checks, explicit publication/read-back ports and consumer anti-rollback transitions.
+* `release-channel-witness`: independent arbitrary-metadata witness API and real Sigsum adapter. This package is usable without channel policy or Molten.
+* `release-channel-transports`: bounded HTTPS transport adapters for existing OCI storage and a separately configured immutable metadata mirror.
+
+* `release-channel-index`: a separately governed Ed25519-authenticated external namespace high-water/index service, with nonce-bound queries and reserve/finalize/orphan transitions. It is not a Sigsum extension. A fresh signed query proving a resolved orphan high-water is the only way a channel successor may skip generations.
+* `release-channel-governed-pilot`: experimental end-to-end governed publication over real stores, a real Sigsum log and a durable local current CAS (`tools/governed/local.py`).
+* `release-channel-pilot`: executable authentic publisher/fixture orchestration for the OnixOS consumer rail; synthetic experimental subjects are honestly distinguished from Mantle/Cairn producer evidence. See `tools/consumer/README.adoc`.
+
+The canonical source repository is the operator-created private `https://github.com/OnixResearch/release-channel`, SSH origin `git@github.com:OnixResearch/release-channel.git`. Repository creation does not authorize unvalidated publication or production trust. Rust dependency distribution requires the integration owner's validated immutable revision; no revision is asserted before that commit exists. The implementation checkout is not a durable consumer dependency. Do not commit relative sibling source dependencies into consumers. Cargo workspace paths refer only to packages within this repository.
+
+== Authority inventory
+
+[cols="1,2,2"]
+|===
+|Role |Owner and identity |Retained state / non-claim
+|Producer |Mantle immutable release object |Build and artifact facts; channel does not rebuild or certify correctness
+|Readiness |Cairn exact candidate/readiness receipt |Gate eligibility; channel does not issue readiness
+|Evidence |Valence exact bundle and linkage |Evidence identity; not artifact correctness
+|Publisher |Dedicated Release Channel, exact BLAKE3 metadata and generation |Threshold/delegation/expiry/revocation policy; no deployment authority
+|Transport |Operator-authorized existing OCI registry |OCI SHA-256 identifiers retained for interoperability; registry authorization is separate
+|Mirror |Operator-authorized independent HTTPS metadata mirror |Exact read-back must agree; transport availability is not log independence
+|Trust |Consumer-supplied key set, threshold and delegation |No key discovery, global trust root, implicit rotation or expiry bypass
+|Revocation |Publisher/consumer policy authority, exact current snapshot |Freshness explicitly checked; offline cache is not current revocation authority
+|Witness |Configured Sigsum log and cosigners, exact public keys/quorum |Signed append/inclusion/consistency only; not readiness/artifact truth
+|Consumer |OnixOS deployment owner or Molten world-head owner |Durable highest generation/checkpoint and final admission/CAS remain consumer-owned
+|===
+
+
+Sigsum inclusion and checkpoint consistency do not prove that a world head is the current highest claim for a namespace. Whole consumer-store rollback removes a local anti-rollback baseline. The strong profile therefore additionally requires a fresh authenticated external-index query over the exact namespace, highest reserved claim, committed claim and pending/orphan status. Reservations must be durable externally before consumer final CAS; finalization follows CAS and cannot replace its authority. A fresh checkpoint containing an older head is not sufficient. See `governance/external-index.ncl` for the independently retained-state and operator prerequisites.
+== Independence and non-claims
+
+A local verifier/helper, local log or fake-provider conformance suite does not establish independent witness administration. An independent profile needs an operator-approved log, independently controlled witness signing keys, an explicit quorum policy, authenticated provider endpoints and a declared assumption about administrator/key compromise. Two mirror URLs alone do not establish separate administration.
+
+Sigsum is a general-purpose checksum transparency protocol, not TLS certificate-only CT. Sigsum uses its mandated hash/signature formats; stack metadata identity remains BLAKE3. The adapter binds the submitted checksum statement to that exact identity. Never claim TUF compatibility, deployment success, consensus acceleration, or production readiness from this repository.
+
+== Publication and uncertainty
+
+Preview binds prior state, immutable release, readiness, policy, evidence, revocation and mirrors. Publication requires matching independent immutable read-back and required witness observations. A transport timeout can follow a completed remote write; it is uncertainty, not proof of no effect. Consumers must not reset durable history because an input is missing. Molten retains staging, world-head authority, final CAS and recovery; this package cannot mutate its head.
+
+== Pilot admission
+
+`governance/pilot.ncl` records required evidence and operator inputs. The tools accept explicit authorized endpoints and keys; they do not create a registry, cache, organization repository, trusted witness or production deployment. Default adoption stays blocked until one Mantle producer, channel publisher, two transport paths and an OnixOS consumer have observed positive/negative/recovery/rotation/anti-rollback evidence. Never substitute a local process result for that evidence.
+
+== Verification ownership
+
+The integration owner runs focused conformance, actual pilot tools and workspace checks after all package slices land. No execution is claimed by source delivery. Exact provider source/license pin is recorded alongside the Sigsum bridge. Cargo dependencies pin stack providers to immutable revisions; upstream interoperability algorithms are not replaced by BLAKE3.

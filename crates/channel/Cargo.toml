@@ -1,0 +1,19 @@
+[package]
+name = "release-channel"
+version = "0.1.0"
+edition = "2024"
+license.workspace = true
+publish = false
+
+[dependencies]
+blake3.workspace = true
+artifact-auth-core.workspace = true
+transactional-reconciliation-core.workspace = true
+release-channel-witness = { path = "../witness" }
+release-channel-index = { path = "../index" }
+artifact-auth-ed25519.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+
+[dev-dependencies]
+ed25519-dalek = "2.2"

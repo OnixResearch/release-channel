@@ -1,0 +1,22 @@
+[objects]
+logical_identity = "BLAKE3 over exact channel metadata bytes"
+oci_blob = "SHA256 over exact bytes; POST /v2/<repository>/blobs/uploads/ then PUT same-authority Location?digest=sha256:<hex>"
+oci_manifest = "PUT OCI v1.1 image manifest at metadata-<logical-blake3> tag; custom metadata config descriptor, empty layers, explicit artifactType"
+oci_readback = "GET manifest with OCI Accept; enforce schema/mediaType/artifactType/config digest/size; GET blob by SHA256; verify wire SHA256 AND requested channel BLAKE3"
+static_upload = "PUT <existing-authorized-base>/<logical-blake3>.metadata application/vnd.onix.release-channel.metadata.v1 (opaque versioned binary bytes, not JSON)"
+static_readback = "GET same logical object; verify exact BLAKE3; publisher-reported success never counts as readback"
+
+[authority]
+ports = "Explicit bounded-http ClientPorts, supplied generated destination/resource/deadline profile, DER TLS roots, opaque Authorization slot"
+redirects = "Denied; OCI upload Location must stay in same origin and repository upload namespace"
+retries = "Denied; failed writes report uncertainty"
+receipts = "Metadata only; bounded pending count supplied to Http::new; drain through take_receipts"
+control = "GovernedPublisher requires operator ControlPort with real atomic compare_exchange(expected,successor); GET then unconditional PUT is forbidden"
+missing_production_prerequisites = "Authorized OCI repository push/pull; static namespace PUT/GET authority; distinct authorized readback clients; actual provider CAS control plane and independent current-state read authority; witness authority remains channel caller responsibility"
+
+[local]
+command = "python3 tools/transports/local.py /absolute/release-channel-transport-pilot /absolute/openssl"
+limits = "Explicit loopback admission and local test roots only; shared host/admin, not production independence"
+registry = "See provenance.toml for official Distribution 3.1.2 immutable image and Apache-2.0 source"
+registry_locations = "Local Distribution explicitly enables REGISTRY_HTTP_RELATIVEURLS=false; absolute upload Locations must retain the configured nondefault HTTPS port and exact repository authority"
+http_source = "Canonical rad:z4ARxEt93T6gJTrTZpUyKHMAemPiv acquired from https://seed.radicle.garden/z4ARxEt93T6gJTrTZpUyKHMAemPiv.git at published e0f43bf54bd24203a51fc1952489c17a70c68c5f; Host includes nondefault port, while same-authority credential-exfiltration checks remain strict"

@@ -1,0 +1,84 @@
+= Sigsum arbitrary-metadata witness provider
+
+The `release-channel-witness` crate is a reusable provider port plus bounded Unix
+process shell and durable monotonic checkpoint fence. The release-channel owner
+is its initial consumer and maintenance owner. `tools/sigsum` supplies the real
+protocol adapter, not a simulated cryptographic verifier.
+
+== Protocol and provenance
+
+`upstream.toml` records the exact upstream revision, module checksum, source
+locations and BSD-2-Clause license. `LICENSE.sigsum` retains the upstream notice.
+The upstream README and license were read before reuse; upstream has no AGENTS
+file. Upstream `pkg/submit` signs the protocol leaf and submits it over HTTP;
+`pkg/proof` verifies the submitter signature, log signature, policy witness
+quorum and Merkle inclusion; `pkg/merkle` verifies RFC 9162 consistency paths.
+The bridge uses those APIs directly because the submit/verify commands alone
+cannot supply the consistency verification operation. No cryptography is
+reimplemented in Rust or in the pilot fixture.
+
+The caller supplies an arbitrary 32-byte metadata hash and the exact Sigsum
+Ed25519 submitter public key in hexadecimal. This is the Sigsum message, not
+artifact bytes. Upstream hashes that message to construct the leaf checksum
+and applies the protocol signature namespace. The caller owns metadata
+canonicalization, hash algorithm and any artifact-to-metadata binding.
+
+== Explicit trust and persistence
+
+No default policy, trusted log, witness key or quorum is embedded. Rust loads
+policy bytes once in `Process::new`; later file mutations do not change that
+process's verification roots. Construct a new provider to change policy.
+Only supplied policy log URLs are used; the HTTP transport rejects redirects.
+The executable and optional signing-key capability are operator supplied.
+Secrets and child stderr are never included in returned diagnostics.
+
+`Monotonic::enroll(provider, path, evidence)` is an explicit operator approval of
+a signed baseline; it verifies evidence and publishes with no replacement.
+`open(provider, path)` rejects a missing state file and re-verifies saved
+signatures/inclusion/quorum under the current explicit policy. Both hold an
+exclusive file lock. Successful append/verify requires same-log monotonic
+size, equal roots at equal sizes, verified consistency, file sync, atomic
+publication and directory sync. A failed durability step blocks the live
+instance until reopen. An append timeout is uncertain: submission may already
+have occurred. Invalid consistency paths are not promoted into proof of a fork.
+Only two verified checkpoints of the same size with different roots produce
+`Fork`. A smaller verified checkpoint produces `Rollback`.
+
+State and verifier storage must remain trusted. Deleting/restoring local state,
+replacing the verifier, or controlling its signing keys is outside this fence.
+Separate processes/directories do NOT prove administrator or physical
+independence, and this pilot is NOT production readiness or a deployed
+independent Sigsum witness. No global trust roots are installed.
+
+== Repeatable real-provider pilots
+
+Go 1.25 or newer is required. Build commands, from `tools/sigsum`:
+
+[source,shell]
+----
+go build -mod=readonly -o /tmp/sigsum-witness-pilot .
+go build -mod=readonly -o /tmp/sigsum-localpilot ./localpilot
+python3 local.py /tmp/sigsum-witness-pilot /tmp/sigsum-localpilot /tmp/sigsum-local-receipt.json
+----
+
+The local fixture is a separate loopback HTTP process, uses randomly generated
+log/submitter/witness keys, verifies real signed add-leaf requests, and generates
+real upstream Merkle inclusion/consistency paths and checkpoint cosignatures.
+The orchestration checks append/verification for two distinct metadata hashes,
+nontrivial 1-to-2 consistency, changed-metadata rejection and missing trusted
+witness rejection. Temporary private keys are removed after the run. Receipt
+paths must not already exist. This experimental fixture is in-memory, not a
+production log implementation or durable witness service.
+
+For an operator-selected real deployment, supply an explicit policy containing
+reachable log URLs, approved witness quorum, a signing-key capability and its
+matching public key. `pilot.py EXECUTABLE POLICY SECRET SIGNER METADATA RECEIPT`
+submits one arbitrary metadata hash and checks offline verification, changed
+metadata rejection and checkpoint self-consistency. Submission may need an
+operator rate-limit arrangement; failure is not evidence of non-inclusion.
+
+`crates/witness/tests/conformance.rs` contains deterministic fake-provider
+positive/negative conformance cases for durable advancement/reopen, explicit
+enrollment, re-enrollment rejection, fork, rollback, absent consistency,
+changed signed metadata and missing quorum. They do not pretend to test
+Sigsum cryptography; the real-provider pilot exercises that boundary.

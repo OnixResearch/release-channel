@@ -1,0 +1,28 @@
+[workspace]
+resolver = "2"
+members = ["crates/channel", "crates/witness", "crates/transports", "crates/index", "crates/pilot", "crates/governed-pilot"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.96"
+license = "MIT"
+
+[workspace.dependencies]
+blake3 = "1.8"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+fs2 = "0.4"
+libc = "0.2"
+tempfile = "3"
+ed25519-dalek = "2.2"
+anyhow = "1"
+artifact-auth-core = { git = "https://github.com/OnixResearch/onix-artifact", rev = "5f3962d7471d1547e044f57daeda72f56621fd52" }
+artifact-auth-ed25519 = { git = "https://github.com/OnixResearch/onix-artifact", rev = "5f3962d7471d1547e044f57daeda72f56621fd52" }
+transactional-reconciliation-core = { git = "rad://z4Tky6zvC8w4Y6c4YBzNxVbq5n752", rev = "a4ce8038956bc3daea04e0ae80a6b46ebb236524" }
+bounded-http = { git = "https://seed.radicle.garden/z4ARxEt93T6gJTrTZpUyKHMAemPiv.git", rev = "e0f43bf54bd24203a51fc1952489c17a70c68c5f", features = ["https"] }
+release-channel = { path = "crates/channel" }
+release-channel-witness = { path = "crates/witness" }
+release-channel-transports = { path = "crates/transports" }
+release-channel-index = { path = "crates/index" }

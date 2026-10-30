@@ -1,0 +1,17 @@
+[distribution]
+image = "docker.io/library/registry@sha256:d4032d4cc323c1731c707931ecada07a53076eac38e3b61ae57533f170f2c6c3"
+version = "3.1.2"
+amd64_manifest = "sha256:1290056e2357eceb0c047cb60ae9abb370305a218e2df650eb8d3ea021b1c151"
+image_source = "https://github.com/distribution/distribution-library-image"
+image_revision = "775973b655bb4b11561db92a1cf50113148ce530"
+dockerfile = "https://github.com/distribution/distribution-library-image/blob/775973b655bb4b11561db92a1cf50113148ce530/Dockerfile"
+upstream_source = "https://github.com/distribution/distribution/tree/v3.1.2"
+upstream_license = "Apache-2.0"
+license_source = "https://github.com/distribution/distribution/blob/v3.1.2/LICENSE"
+official_image = "https://hub.docker.com/_/registry"
+observed = "docker buildx imagetools inspect docker.io/library/registry:3.1.2"
+
+[claim]
+scope = "Local two-transport mechanism pilot; not production or administrator separation"
+control = "No channel CAS or witness acceptance attempted by immutable transport pilot"
+cleanup = "Stop only created Distribution container; remove only own temporary directory"

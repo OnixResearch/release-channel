@@ -1,0 +1,19 @@
+= Change log
+
+== 2026-10-29
+
+* Established a separate governed release-channel source owner following the workspace operator's dedicated-owner selection.
+* Added bounded channel metadata, threat checks, preview-first publication/read-back and explicit consumer durable-state transitions.
+* Added a reusable Sigsum arbitrary-metadata witness adapter with exact upstream protocol/source/license pin and explicit checkpoint enrollment.
+* Added separate OCI and HTTPS-mirror paths; interoperable digest algorithms remain distinct from stack BLAKE3 identity.
+* Added a separately governed signed external highest-state service because Sigsum inclusion and consumer-local history do not prove per-namespace currentness after whole consumer-store rollback.
+* Kept staged/orphan reservation, caller CAS authority, uncertain effects, threshold/trust input and production/adoption claims separate.
+* Recorded experimental shared-host assumptions; local protocol pilots do not establish administrative or physical independence.
+* Selected the published canonical Bounded HTTP authority fix at e0f43bf54bd24203a51fc1952489c17a70c68c5f and restored absolute upload Locations with nondefault HTTPS ports; strict same-origin validation remains unchanged. Earlier rejected-source and relative-Location receipts remain historical mechanism evidence only.
+* Fixed governed staging to compare stored identities with the successor metadata digest rather than the planner framing identity; added an actual governed-publication pilot (`release-channel-governed-pilot`, `tools/governed/local.py`) covering real OCI/mirror staging, Sigsum witnessing, durable current CAS and stale-state rejection.
+* Added authenticated orphan supersession: a fresh signed index query proving a resolved orphan high-water admits one strictly higher successor generation; unauthenticated gaps remain rollback denials.
+* Pilot currentness now recognizes lost Reserve and lost Commit replies from a fresh signed query instead of issuing a second reservation.
+* The revoked phase now pairs a matching revoking snapshot with an accepted control phase, so the listed release is the only rejection reason.
+* Original source crates inherit the workspace MIT license; Artifact Auth combined-work AGPL obligations remain in THIRD-PARTY.adoc. The index crate no longer pins an exact libc version.
+
+Execution evidence belongs to the integration owner's observed build/pilot receipts, not this source change log. Default and production adoption remain subject to the required producer/publisher/two-path/OnixOS pilots and their exact evidence.

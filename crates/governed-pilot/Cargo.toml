@@ -1,0 +1,18 @@
+[package]
+name = "release-channel-governed-pilot"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+release-channel.workspace = true
+release-channel-transports.workspace = true
+release-channel-witness.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+ed25519-dalek.workspace = true
+fs2.workspace = true
+libc.workspace = true
+cap-std = "3"

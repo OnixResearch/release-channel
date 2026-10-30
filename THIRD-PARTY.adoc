@@ -1,0 +1,19 @@
+= Third-party source and license boundaries
+
+Original Release Channel source is MIT as declared in LICENSE. This does not relicense dependencies or remove distribution/network-use obligations from combined works.
+
+[cols="1,2,1"]
+|===
+|Dependency |Exact source |License
+|Artifact Auth core and Ed25519 |https://github.com/OnixResearch/onix-artifact at 5f3962d7471d1547e044f57daeda72f56621fd52 |AGPL-3.0-or-later
+|Transactional Reconciliation Core |rad://z4Tky6zvC8w4Y6c4YBzNxVbq5n752 at a4ce8038956bc3daea04e0ae80a6b46ebb236524 |MIT
+|Bounded HTTP |Canonical rad:z4ARxEt93T6gJTrTZpUyKHMAemPiv at e0f43bf54bd24203a51fc1952489c17a70c68c5f; acquisition https://seed.radicle.garden/z4ARxEt93T6gJTrTZpUyKHMAemPiv.git |MIT
+|Sigsum Go |sigsum.org/sigsum-go v0.14.1 at ea106fe53c454bc5b8ece2ba56afc43d0f1f09dc |BSD-2-Clause; notice tools/sigsum/LICENSE.sigsum
+|Local pilot Distribution registry |Official immutable image/source identity in tools/transports/provenance.toml |Apache-2.0
+|===
+
+The source publisher/integrator must retain applicable notices and assess combined-work obligations before distribution or network deployment. A private source repository is not an exemption from dependency license obligations. The pilot is not a third-party license approval or claim that the linked release-channel consumer is MIT-only.
+
+Bounded HTTP's selected provider cohort requires Rust 1.96; the root workspace declares that prerequisite. Pilot commands must select a compatible compiler rather than weaken or edit provider requirements.
+
+The initial Release Channel acquisition of real `rad://z3NcPep7iJfaN6A3MbnsUBmg52FRX` main `db13eb8a0341719e54817ae34451cf310a41033f` followed a configured local remote but missed the authoritative Bounded HTTP SOURCE.md boundary. It is rejected as canonical; it is not a compatible alias or silently renamed identity. `governance/source-boundary.ncl` records the correction and publication gate. Integration must align every selected Cargo/Nix/lock pin with the actual verified canonical-owner bugfix before source publication.

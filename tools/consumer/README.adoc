@@ -1,0 +1,37 @@
+= Actual OnixOS channel consumer pilot
+
+This rail runs real provider mechanisms against explicit experimental subjects. It does not claim a Mantle producer release, Cairn-issued readiness, independent administration, physical separation, deployment success, default adoption or production readiness.
+
+== Source and executable contract
+
+Build the separate second cohort from the Release Channel root:
+
+----
+cargo build -p release-channel-pilot
+----
+
+The OnixOS owner builds its actual `cli/onixos-channel` executable and provides the absolute path to its `smoke.py`. The first provider cohort supplies `provider`, the Go Sigsum bridge and local log. Supply OpenSSL through the reviewed toolchain/environment. The actual official Distribution image pin and source/license are recorded in `tools/transports/provenance.toml`; no mutable image tag is used as evidence.
+
+----
+python3 tools/consumer/local.py \
+  /absolute/onixos-channel \
+  /absolute/onixos/cli/onixos-channel/smoke.py \
+  /absolute/release-channel-pilot \
+  /absolute/provider \
+  /absolute/sigsum-witness-pilot \
+  /absolute/sigsum-localpilot \
+  /absolute/openssl \
+  /absolute/new-consumer-receipt.json
+----
+
+The receipt must not exist. The script creates only its own temporary capability roots, pinned registry container, HTTPS mirror and Sigsum process, and cleans only those resources. Docker authority is explicit prerequisite; no Compose/Kubernetes or production service mutation occurs.
+
+== Authentic operations, bounded claims
+
+`release-channel-pilot prepare ROOT CONFIG` creates fresh private experimental keys, real Artifact Auth threshold signatures, dual old/new rotation signatures, and separate Ed25519 readiness/revocation payloads matching the consumer's exact domains. The metadata subjects are explicitly synthetic experimental identifiers, not assertions that Mantle or Cairn produced them. Configuration pins the experimental artifact key, channel keys, exact index server key, namespace, log/witness policy and TLS roots.
+
+Each generated executable phase hook calls `release-channel-pilot publish ROOT PHASE`. It performs actual OCI and HTTPS PUT/GET operations with fresh receiver clients, appends and verifies actual Sigsum proofs, and uses actual signed index-process requests to reserve/finalize the exact metadata identity. These hooks do not echo fabricated proofs or provider responses. Expired/revoked candidates are uploaded and logged but never advance the external index. Split-mirror failure injects a byte change into the owned real mirror object after genuine publication.
+
+The actual OnixOS runner exercises upgrade, missing state, whole consumer-file rollback, interruption/reconciliation, dual-authority rotation, expiry, signed revocation and actual mirror corruption. The provider capability root is outside the consumer rollback root. A compromise/rollback of the common host or administrator remains a common failure domain. This rail does not execute Molten's world-head CAS or grant deployment authority.
+
+A successful receipt is emitted only after the real OnixOS matrix exits successfully. Source delivery itself is not runtime evidence. An actual Mantle/Cairn producer-chain pilot remains separate governance evidence.

@@ -1,0 +1,3 @@
+/target/
+*.receipt.json
+__pycache__/
